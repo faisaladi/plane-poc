@@ -1,0 +1,19 @@
+# Environment and secret files
+.env
+*.env
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+failed_jira_imports.json
+
+# Backup bundles
+*.tar.gz
+*.sql
+
+# Python cache
+__pycache__/
+*.pyc

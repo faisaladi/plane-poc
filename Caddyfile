@@ -1,0 +1,29 @@
+:80 {
+    # Increase maximum upload file size to 25MB
+    request_body {
+        max_size 25MB
+    }
+
+    # Proxy God Mode Administration Panel
+    redir /god-mode /god-mode/ permanent
+    reverse_proxy /god-mode/* plane-admin:3000
+
+    # Proxy Spaces & Published Pages
+    redir /spaces /spaces/ permanent
+    reverse_proxy /spaces/* plane-space:3000
+
+    # Proxy REST API & Auth endpoints to Backend
+    reverse_proxy /api/* plane-backend:8000
+    reverse_proxy /auth/* plane-backend:8000
+    reverse_proxy /static/* plane-backend:8000
+
+    # Proxy Realtime WebSocket requests to Live container
+    reverse_proxy /live/* plane-live:3000
+
+    # Proxy MinIO file uploads
+    reverse_proxy /plane-uploads/* plane-minio:9000
+    reverse_proxy /plane-uploads plane-minio:9000
+
+    # Proxy Web UI requests to Next.js Frontend container
+    reverse_proxy /* plane-web:3000
+}

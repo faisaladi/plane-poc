@@ -1,0 +1,257 @@
+# ==============================================================================
+# PLANE SELF-HOSTED COMPLETE DOCKER-COMPOSE SPECIFICATION
+# Official multi-container stack for Plane (Community / Production / Local)
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. DATABASE (PostgreSQL 15)
+  # ----------------------------------------------------------------------------
+  plane-db:
+    image: postgres:15-alpine
+    container_name: plane-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-plane_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-plane}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-plane_user} -d ${POSTGRES_DB:-plane}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      default:
+        aliases:
+          - plane-db
+
+  # ----------------------------------------------------------------------------
+  # 2. CACHE & SESSION STORE (Redis)
+  # ----------------------------------------------------------------------------
+  plane-redis:
+    image: redis:7-alpine
+    container_name: plane-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD:-change_this_redis_password}
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change_this_redis_password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      default:
+        aliases:
+          - plane-redis
+
+  # ----------------------------------------------------------------------------
+  # 3. MESSAGE BROKER (RabbitMQ)
+  # ----------------------------------------------------------------------------
+  plane-mq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: plane-mq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-plane_mq}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-change_this_rabbitmq_password}
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    networks:
+      default:
+        aliases:
+          - plane-mq
+
+  # ----------------------------------------------------------------------------
+  # 4. OBJECT STORAGE (MinIO)
+  # ----------------------------------------------------------------------------
+  plane-minio:
+    image: minio/minio:RELEASE.2023-09-04T19-57-37Z
+    container_name: plane-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minio_access_key_admin}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minio_secret_key_change_me}
+    volumes:
+      - miniodata:/data
+    networks:
+      default:
+        aliases:
+          - plane-minio
+
+  # ----------------------------------------------------------------------------
+  # 5. DATABASE MIGRATOR (Runs once to apply database schemas)
+  # ----------------------------------------------------------------------------
+  plane-migrator:
+    image: makeplane/plane-backend:v1.3.0
+    container_name: plane-migrator
+    restart: on-failure
+    command: ./bin/docker-entrypoint-migrator.sh
+    env_file:
+      - .env
+    depends_on:
+      plane-db:
+        condition: service_healthy
+      plane-redis:
+        condition: service_healthy
+
+  # ----------------------------------------------------------------------------
+  # 6. BACKEND REST API
+  # ----------------------------------------------------------------------------
+  plane-backend:
+    image: makeplane/plane-backend:v1.3.0
+    container_name: plane-backend
+    restart: always
+    command: ./bin/docker-entrypoint-api.sh
+    env_file:
+      - .env
+    depends_on:
+      plane-db:
+        condition: service_healthy
+      plane-redis:
+        condition: service_healthy
+      plane-mq:
+        condition: service_started
+      plane-minio:
+        condition: service_started
+      plane-migrator:
+        condition: service_completed_successfully
+    networks:
+      default:
+        aliases:
+          - api
+          - plane-backend
+
+  # ----------------------------------------------------------------------------
+  # 7. ASYNC BACKGROUND WORKER (Celery)
+  # ----------------------------------------------------------------------------
+  plane-worker:
+    image: makeplane/plane-backend:v1.3.0
+    container_name: plane-worker
+    restart: always
+    command: ./bin/docker-entrypoint-worker.sh
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - worker
+          - plane-worker
+
+  # ----------------------------------------------------------------------------
+  # 8. ASYNC SCHEDULER (Celery Beat)
+  # ----------------------------------------------------------------------------
+  plane-beat:
+    image: makeplane/plane-backend:v1.3.0
+    container_name: plane-beat
+    restart: always
+    command: ./bin/docker-entrypoint-beat.sh
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - beat
+          - plane-beat
+
+  # ----------------------------------------------------------------------------
+  # 9. MAIN FRONTEND WEB UI (Next.js)
+  # ----------------------------------------------------------------------------
+  plane-web:
+    image: makeplane/plane-frontend:v1.3.0
+    container_name: plane-web
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - web
+          - plane-web
+
+  # ----------------------------------------------------------------------------
+  # 10. ADMIN & GOD-MODE PANEL (Next.js)
+  # ----------------------------------------------------------------------------
+  plane-admin:
+    image: makeplane/plane-admin:v1.3.0
+    container_name: plane-admin
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - admin
+          - plane-admin
+
+  # ----------------------------------------------------------------------------
+  # 11. PUBLISHED DOCS & SPACES (Next.js)
+  # ----------------------------------------------------------------------------
+  plane-space:
+    image: makeplane/plane-space:v1.3.0
+    container_name: plane-space
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - space
+          - plane-space
+
+  # ----------------------------------------------------------------------------
+  # 12. REALTIME COLLABORATION ENGINE (Socket / Livekit)
+  # ----------------------------------------------------------------------------
+  plane-live:
+    image: makeplane/plane-live:v1.3.0
+    container_name: plane-live
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - plane-backend
+    networks:
+      default:
+        aliases:
+          - live
+          - plane-live
+
+  # ----------------------------------------------------------------------------
+  # 13. REVERSE PROXY & INGRESS (Nginx / Caddy)
+  # ----------------------------------------------------------------------------
+  plane-proxy:
+    image: makeplane/plane-proxy:v1.3.0
+    container_name: plane-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    env_file:
+      - .env
+    depends_on:
+      - plane-web
+      - plane-admin
+      - plane-space
+      - plane-backend
+      - plane-live
+
+volumes:
+  pgdata:
+  redisdata:
+  rabbitmqdata:
+  miniodata:
