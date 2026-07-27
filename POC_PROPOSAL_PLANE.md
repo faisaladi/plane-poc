@@ -193,7 +193,7 @@ cp .env.example .env
 nano .env
 
 # 4. Launch all 12 containers via Docker Compose
-docker compose -f docker-compose.custom.yml up -d
+docker compose up -d
 ```
 
 ---

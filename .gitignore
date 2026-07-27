@@ -1,6 +1,8 @@
-# Environment and secret files
+# Environment and secret files (NEVER commit live credentials)
 .env
-*.env
+.env.local
+.env.*
+!.env.example
 
 # Operating System files
 .DS_Store

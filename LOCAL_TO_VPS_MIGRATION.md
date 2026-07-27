@@ -37,7 +37,7 @@ Run these commands on your local computer in the `plane-selfhost` directory:
 Stop application containers to prevent active writes while exporting:
 
 ```bash
-docker compose -f docker-compose.custom.yml stop plane-backend plane-worker plane-web plane-live
+docker compose stop plane-backend plane-worker plane-web plane-live
 ```
 
 ### 2. Export PostgreSQL Database
@@ -96,7 +96,7 @@ PLANE_ENVIRONMENT=production
 
 ### 3. Start Infrastructure Services on VPS
 ```bash
-docker compose -f docker-compose.custom.yml up -d plane-db plane-redis plane-mq plane-minio
+docker compose up -d plane-db plane-redis plane-mq plane-minio
 ```
 
 ### 4. Restore PostgreSQL Database
@@ -120,7 +120,7 @@ docker run --rm \
 Launch the rest of Plane microservices:
 
 ```bash
-docker compose -f docker-compose.custom.yml up -d
+docker compose up -d
 ```
 
 ---

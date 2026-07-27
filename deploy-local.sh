@@ -49,13 +49,13 @@ else
 fi
 
 echo -e "\n${BOLD}Starting Plane local services via Docker Compose...${NC}"
-docker compose -f docker-compose.custom.yml up -d
+docker compose up -d
 
 echo -e "\n${BOLD}====================================================${NC}"
 echo -e "${GREEN}${BOLD}🎉 Plane is starting up locally!${NC}"
 echo -e "${BOLD}====================================================${NC}"
 echo -e " - Main Application UI: ${BOLD}http://localhost${NC}"
-echo -e " - Instance Setup / Admin: ${BOLD}http://localhost/god-mode${NC}"
+echo -e " - Instance Setup / Admin: ${BOLD}http://localhost/god-mode/${NC}"
 echo -e " - MinIO Storage Console: ${BOLD}http://localhost:9001${NC}"
 echo -e "\n${YELLOW}Note: It may take 1-2 minutes for PostgreSQL and database migrations to complete.${NC}"
-echo -e "Check logs anytime with: ${BOLD}docker compose -f docker-compose.custom.yml logs -f${NC}\n"
+echo -e "Check logs anytime with: ${BOLD}docker compose logs -f${NC}\n"

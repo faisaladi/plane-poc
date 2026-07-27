@@ -52,9 +52,10 @@ plane-selfhost/
 ├── LOCAL_TO_VPS_MIGRATION.md   # Local to VPS database & asset migration guide
 ├── deploy-local.sh             # Local Docker Desktop/OrbStack setup script
 ├── deploy.sh                   # Server pre-flight check & setup script for VPS
-├── docker-compose.custom.yml   # Complete multi-container Docker Compose specification
+├── docker-compose.yml          # Unified multi-container Docker Compose specification
 ├── Caddyfile                   # Nginx / Caddy reverse proxy routing rules
 ├── .env.example                # Template environment variables file
+├── .gitignore                  # Security filter protecting local passwords and logs
 ├── import_confluence_pages.py  # Parallel Python script for Confluence pages import
 └── import_jira_csv_bulk.py     # Parallel Python script for bulk Jira tickets import
 ```
