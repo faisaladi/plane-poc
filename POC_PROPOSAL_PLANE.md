@@ -183,7 +183,7 @@ Connect to the TipTip VPS host via SSH:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/tiptip/plane-selfhost.git && cd plane-selfhost
+git clone https://github.com/faisaladi/plane-poc.git && cd plane-poc
 
 # 2. Run automated server pre-flight check
 ./deploy.sh
