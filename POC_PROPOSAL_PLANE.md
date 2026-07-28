@@ -255,33 +255,32 @@ Plane includes an administrative panel called **God Mode** accessible at `http:/
 * **Google OAuth 2.0**: One-click sign-in using TipTip Google Workspace (`@tiptip.tv`).
 * **GitHub OAuth**: Authentication via GitHub accounts for developers.
 
-### 3. Project Management Hierarchy
+### 3. Project Management & Ticket Creation (Plane vs. Jira)
 
-Plane organizes work using a clean four-tier structure:
+#### Step-by-Step Ticket Creation Workflow
+1. Navigate to your **Project** $\rightarrow$ Click **"New work item"** (or press shortcut `C`).
+2. Fill in Title, Description, Priority (Urgent, High, Medium, Low), Assignee, and State (Backlog, Todo, In Progress, Done).
+3. Click **Save**.
 
-```text
-Workspace (e.g. TipTip Engineering)
- └── Project (e.g. Mobile App, Backend Services, AI Infrastructure)
-      ├── Work Items / Issues (Task, Bug, Feature Request)
-      ├── Modules (Epics / Feature Initiatives)
-      └── Cycles (Time-boxed Iterations)
-```
+#### Key Differences: Plane vs. Jira Issue Creation
+* **Instant Modal Render**: Plane's issue creation modal opens in **<50ms** without freezing the UI to download complex Jira custom field schemas (`customfield_10024`) or 50+ JavaScript plugin bundles.
+* **Keyboard-First Interface**: Full keyboard navigation (`C` to create, `Cmd+Enter` to submit, `Cmd+K` global command palette).
+* **Native Markdown Descriptions**: Issue descriptions are stored as clean Markdown rather than Atlassian Document Format (ADF), preventing formatting corruption when copied or parsed by AI agents.
 
-* **Work Items (Issues)**: Rich text descriptions, priority levels (Urgent, High, Medium, Low), assignees, sub-issues, and activity logs.
-* **Modules**: Grouping of related issues to track epic progress across multiple releases.
-* **Cycles**: Flexible time-boxed iterations (e.g., 1-week or 2-week development cycles) with automated burn-down and velocity tracking.
+### 4. Documentation: Creating Documents in Plane Pages
 
-### 4. Documentation: Plane Pages & Markdown Advantage for AIAD
+#### Step-by-Step Document Creation Workflow
+1. In your Project sidebar, select **Pages** $\rightarrow$ Click **"Add Page"** (or press shortcut `P`).
+2. Enter Document Title (e.g. `TipTip Microservices System Architecture`).
+3. Use the block editor with `/` slash commands to insert Headings, Tables, Code Blocks, and Lists.
 
-**Plane Pages** provides a collaborative, Notion-style block editor embedded directly within each project.
-
-* **Markdown Native**: All documents are stored in standard Markdown format (`.md`).
-* **Token Economy for AIAD**: When an AI coding assistant (Cursor / Claude Code / Antigravity) reads a document in Plane, it receives clean Markdown rather than heavy HTML or Atlassian ADF JSON. This saves **~80% of prompt context space**, allowing AI agents to analyze longer technical specs without hitting context limits.
+#### The AIAD Token Economy Advantage
+* **Markdown Native**: Unlike Confluence which saves pages as complex XML / ADF JSON, Plane stores Pages as standard Markdown.
+* **Token Economy for LLMs**: When an AI coding assistant (Cursor / Antigravity / Claude Code) reads a document in Plane, it receives clean Markdown. This saves **~80% of prompt context space**, allowing AI agents to analyze longer technical specs without running out of token context or incurring high API costs.
 
 ### 5. Role-Based Access Control (RBAC) & Security
 
 Plane implements strict hierarchical permission controls:
-
 * **Admin**: Full control over workspace, projects, settings, and member management.
 * **Member**: Can create, edit, and manage issues, modules, cycles, and pages.
 * **Viewer**: Read-only access to project boards and documentation.
@@ -290,23 +289,43 @@ Plane implements strict hierarchical permission controls:
 
 ## 9. AIAD & Agentic Capabilities (MCP & REST API)
 
-For TipTip’s AI-driven workflow, Plane provides first-class developer APIs:
+Plane provides first-class developer interfaces for AI agents and developer toolchains:
 
-### 1. REST API Integration
-Plane exposes a clean REST API authenticated via **Personal Access Tokens (PAT)**:
+### 1. Generating Personal Access Tokens (PAT)
+1. Click your Avatar (bottom-left or top-right) $\rightarrow$ **Settings**.
+2. Select **Personal Access Tokens** $\rightarrow$ Click **Add API Token**.
+3. Name your token (e.g., `Antigravity AI Agent`) $\rightarrow$ Copy the token string.
+
+### 2. REST API Integration
+Pass your token in the `X-API-Key` HTTP header:
 
 ```bash
-# Example: Fetching active issues for an AI Coding Agent
+# Fetch active issues for an AI Coding Agent
 curl -X GET "http://localhost/api/v1/workspaces/tiptip-engineering/projects/mobile-app/issues/" \
   -H "X-API-Key: your_personal_access_token" \
   -H "Content-Type: application/json"
 ```
 
-### 2. Model Context Protocol (MCP) Integration
-Plane supports integration with **Model Context Protocol (MCP)** servers, allowing AI assistants (like Claude, Cursor, or custom AGY agents) to autonomously:
-* Search project documentation (Pages) to gather feature requirements.
-* Create new work items when bug reports or refactoring tasks are detected.
-* Update issue statuses (e.g., transition ticket to "In Review" when a Pull Request is opened).
+### 3. Model Context Protocol (MCP) Integration for AI Assistants
+Plane supports integration with **Model Context Protocol (MCP)** servers, allowing AI assistants (Cursor, Claude Code, Antigravity) to autonomously read pages, create tickets, and update issue states.
+
+Add the following to your IDE's `mcpServers` configuration (`~/.cursor/mcp.json` or `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "plane": {
+      "command": "npx",
+      "args": ["-y", "@makeplane/mcp-server"],
+      "env": {
+        "PLANE_API_HOST": "http://localhost",
+        "PLANE_API_KEY": "your_personal_access_token",
+        "PLANE_WORKSPACE_SLUG": "tiptip-engineering"
+      }
+    }
+  }
+}
+```
 
 ---
 
