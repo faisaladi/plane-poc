@@ -257,9 +257,62 @@ Plane includes an administrative panel called **God Mode** accessible at `http:/
 
 ### 3. Project Management & Ticket Creation (Plane vs. Jira)
 
-#### Step-by-Step Ticket Creation Workflow
+#### Concept Mapping: Jira Fields vs. Plane Equivalents
+
+Here is how your team's existing Jira ticket taxonomy (Epics, Pods, Components, Sprints) maps directly into Plane:
+
+| Jira Concept | Plane Equivalent | Plane Usage & Taxonomy |
+| :--- | :--- | :--- |
+| **Project** (e.g. `SATU`) | **Project** (`SATU`) | Tickets belong to a specific Project within a Workspace. |
+| **Epic** (Parent initiative) | **Module** or **Parent Issue** | Group tickets under a **Module** (e.g., `Q3 Payment Gateway`) or set `parent_id`. |
+| **Pod** (`pod-contex`, `pod_paycom`) | **Labels** | Tag tickets with Labels (e.g., `pod-contex`, `pod-paycom`). Filterable on Kanban boards. |
+| **Component** (`SWA`, `Back-End`, `Retool`) | **Labels** | Tag tickets with Component Labels (e.g., `component:swa`, `component:backend`). |
+| **Sprint** (Active iteration) | **Cycle** | Assign ticket to an active **Cycle** (e.g., `Cycle 24`) or leave empty for Backlog. |
+| **Scheduling** (Sprint vs Backlog) | **State** & **Cycle** | Set State (`Backlog`, `Todo`, `In Progress`) and attach to a Cycle if scheduled. |
+| **Priority** (`Highest` $\rightarrow$ `Lowest`) | **Priority** (`urgent`, `high`, `medium`, `low`, `none`) | Direct 5-tier priority mapping in Plane. |
+
+---
+
+#### AI Agent Ticket Creation Workflow Skill (Plane Edition)
+
+Below is the adapted ticket creation workflow for AI Agents (Cursor, Antigravity, Claude Code) operating in Plane:
+
+```text
+AI Agent Preliminary Questions for Plane Ticket Creation:
+
+1. Which Project does this belong to? (e.g., SATU, Backend Services)
+2. Which Pod does this belong to? 
+   - Label: pod-contex (Content Experience) or pod-paycom (Payment & User)
+3. Which Components are affected? 
+   - Label: component-swa (Web Apps), component-backend, or component-retool
+4. Is this part of an Epic / Initiative? 
+   - Attach to Module (e.g., "QRIS Payment Integration")
+5. Scheduling: Cycle or Backlog?
+   - Attach to active Cycle (e.g. "Cycle 24") or set State to "Backlog"
+6. Priority Level: Urgent, High, Medium, Low, or None?
+```
+
+#### Example REST API Payload for AI Agent Ticket Creation
+
+```json
+POST /api/v1/workspaces/tiptip-engineering/projects/satu/issues/
+Header: X-API-Key: <your_personal_access_token>
+
+{
+  "name": "[SWA] Remove id-ID Indexing from Content Search",
+  "description_html": "<p>Remove unused id-ID locale indexing from Elasticsearch pipeline.</p>",
+  "priority": "medium",
+  "labels": ["pod-contex", "component-swa"],
+  "module": "module_uuid_here",
+  "cycle": "cycle_uuid_here"
+}
+```
+
+---
+
+#### Step-by-Step Ticket Creation Workflow (UI)
 1. Navigate to your **Project** $\rightarrow$ Click **"New work item"** (or press shortcut `C`).
-2. Fill in Title, Description, Priority (Urgent, High, Medium, Low), Assignee, and State (Backlog, Todo, In Progress, Done).
+2. Fill in Title, Description, Priority (`Urgent`, `High`, `Medium`, `Low`), Assignee, State, Labels, Module, and Cycle.
 3. Click **Save**.
 
 #### Key Differences: Plane vs. Jira Issue Creation
