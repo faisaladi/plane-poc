@@ -270,8 +270,25 @@ Here is how your team's existing Jira ticket taxonomy (Epics, Pods, Components, 
 | **Sprint** (Active iteration) | **Cycle** | Assign ticket to an active **Cycle** (e.g., `Cycle 24`) or leave empty for Backlog. |
 | **Scheduling** (Sprint vs Backlog) | **State** & **Cycle** | Set State (`Backlog`, `Todo`, `In Progress`) and attach to a Cycle if scheduled. |
 | **Priority** (`Highest` $\rightarrow$ `Lowest`) | **Priority** (`urgent`, `high`, `medium`, `low`, `none`) | Direct 5-tier priority mapping in Plane. |
+| **FE & BE Start/End Dates** | `start_date`, `target_date` & **Custom Fields** | Tracked via FE/BE Sub-issues or Project Custom Date Fields. |
+| **Sub-tasks & Testing Tasks** | **Sub-issues** & **States** | Infinite nested Sub-issues with dedicated `Testing` states and QA labels. |
+| **GitLab / GitHub Integration** | **Webhooks & Auto-linking** | Link Merge Requests & auto-close tickets via commit message (`fixes SATU-12`). |
 
 ---
+
+#### Handling Specific Workflow Requirements:
+
+1. **FE & BE Start/End Dates**:
+   * **Recommended Approach (Sub-issues)**: Create dedicated sub-issues for FE and BE work under the parent feature ticket. Each sub-issue gets its own `start_date` and `target_date` (due date) for independent timeline tracking.
+   * **Alternative (Custom Fields)**: Plane supports adding custom Project Date Fields (e.g. `FE Start Date`, `FE End Date`, `BE Start Date`, `BE End Date`) directly on single tickets.
+
+2. **Sub-tasks & Testing Tasks**:
+   * **Nested Sub-issues**: Plane natively supports nested sub-issues (`parent_id`). Each sub-issue can be assigned to different developers/QA testers with independent priority and due dates.
+   * **QA / Testing Workflow**: Tickets transition seamlessly through states: `In Progress` $\rightarrow$ `In Review` $\rightarrow$ `Testing / QA` $\rightarrow$ `Done`.
+
+3. **GitLab Integration**:
+   * **Merge Request & Commit Auto-linking**: Mention ticket keys in commit messages or Merge Request titles (e.g. `fixes TIPTIP-42` or `Closes SATU-12`).
+   * **Automated State Transitions**: Plane's GitLab webhook automatically links the MR to the ticket and updates its status to `In Review` or `Completed` when the MR is merged.
 
 #### AI Agent Ticket Creation Workflow Skill (Plane Edition)
 
